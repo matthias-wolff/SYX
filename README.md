@@ -1,10 +1,8 @@
-Go to:
+# SYX - Handles MIDI System Exclusive Data
+
 [JavaDoc](https://www-docs.b-tu.de/fg-kommunikationstechnik/public/matthias.wolff/JavaDoc/SYX/index.html) - 
 [Getting Started](https://www-docs.b-tu.de/fg-kommunikationstechnik/public/matthias.wolff/JavaDoc/SYX/de/btu/kt/syx/tutorials/GettingStarted.html) - 
 [The Tutorials](https://www-docs.b-tu.de/fg-kommunikationstechnik/public/matthias.wolff/JavaDoc/SYX/de/btu/kt/syx/tutorials/package-summary.html)
-
-# SYX - Handles MIDI System Exclusive Data
-
 
 ## The Idea
 
