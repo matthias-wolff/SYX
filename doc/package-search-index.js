@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"Alle Packages","u":"allpackages-index.html"},{"l":"de.btu.kt.syx"},{"l":"de.btu.kt.syx.apps"},{"l":"de.btu.kt.syx.devices"},{"l":"de.btu.kt.syx.midi"},{"l":"de.btu.kt.syx.test"},{"l":"de.btu.kt.syx.util"}];updateSearchResults();
