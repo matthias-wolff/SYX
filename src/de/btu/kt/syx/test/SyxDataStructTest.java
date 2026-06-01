@@ -34,17 +34,6 @@ public class SyxDataStructTest extends ASyxTestCase
   private static final String TEST_SERIALIZATION
     = "SyxDataStructTest: Serialization and Deserialization";
 
-  // Yamaha TG55 SysEx Format Specifiers
-
-  protected static final String F_TG55_PARCNG1      // Parameter change - s 
-    = "43H 1#H 35H 0sH ssH ppH[2] vvH[2]";
-
-  protected static final String F_TG55_PARCNG2      // Parameter change - t,f,e,c
-    = "43H 1#H 35H 0tH 0feecccc ppH[2] vvH[2]";
-
-  protected  static final String F_TG55_BDMU_HEADER  // MU Bulk - Header
-    = "aaH bbH ccH ddH eeH ffH ggH hhH iiH jjH 000sssss";
-
   // -- Tests -----------------------------------------------------------------
 
   @Test
@@ -62,8 +51,8 @@ public class SyxDataStructTest extends ASyxTestCase
     SyxDataStruct ds;
     
     log("SyxDataStruct(format)\n");
-    log("- format: %s\n",F_TG55_PARCNG2);
-    ds = new SyxDataStruct(F_TG55_PARCNG2);
+    log("- format: %s\n",TG55FormatSpecifiers.F_TG55_PARCNG2);
+    ds = new SyxDataStruct(TG55FormatSpecifiers.F_TG55_PARCNG2);
     ds.setMidiValue('#',0x00); // Device ID
     ds.setMidiValue('f',0x01); // Structure number - Filter 1
     ds.setMidiValue('e',0x02); // Structure number - Element 2
@@ -100,8 +89,8 @@ public class SyxDataStructTest extends ASyxTestCase
     byte[] data;
 
     log("SyxDataStruct(format,data)\n");
-    log("- format: %s\n\n",F_TG55_PARCNG1);
-    ds = new SyxDataStruct(F_TG55_PARCNG1);
+    log("- format: %s\n\n",TG55FormatSpecifiers.F_TG55_PARCNG1);
+    ds = new SyxDataStruct(TG55FormatSpecifiers.F_TG55_PARCNG1);
     data = new byte[] 
     {
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // Dummy bytes
@@ -140,9 +129,9 @@ public class SyxDataStructTest extends ASyxTestCase
     SyxDataStruct ds;
 
     log("SyxDataStruct(format,args)\n");
-    log("- format: %s\n",F_TG55_PARCNG1);
+    log("- format: %s\n",TG55FormatSpecifiers.F_TG55_PARCNG1);
     log("- args  : %s\n","'#',0x00,'p',0x05,'v',(int)'>'");
-    ds = new SyxDataStruct(F_TG55_PARCNG1,'#',0x00,'p',0x05,'v',(int)'>');
+    ds = new SyxDataStruct(TG55FormatSpecifiers.F_TG55_PARCNG1,'#',0x00,'p',0x05,'v',(int)'>');
 
     log(0,3,"\n-> SyxDataStruct:\n");
     log(ds.prettyPrint());
@@ -167,8 +156,8 @@ public class SyxDataStructTest extends ASyxTestCase
     log("\n");
 
     log("SyxDataStruct(format,data)\n");
-    log("- format: %s\n\n",F_TG55_BDMU_HEADER);
-    SyxDataStruct ds = new SyxDataStruct(F_TG55_BDMU_HEADER);
+    log("- format: %s\n\n",TG55FormatSpecifiers.F_TG55_BDMU_HEADER);
+    SyxDataStruct ds = new SyxDataStruct(TG55FormatSpecifiers.F_TG55_BDMU_HEADER);
     ds.setName("Multi header");
     byte[]data = new byte[] 
     {
@@ -220,7 +209,7 @@ public class SyxDataStructTest extends ASyxTestCase
     
     //Crate a SysEx data struct
     log("Create a SyxDataStruct ...\n");
-    SyxDataStruct ds1 = new SyxDataStruct(F_TG55_PARCNG1);
+    SyxDataStruct ds1 = new SyxDataStruct(TG55FormatSpecifiers.F_TG55_PARCNG1);
     ds1.setMidiValues('#',0x00,'p',0x05,'v',(int)'>');
     log(ds1.prettyPrint());
     log("ok\n\n");

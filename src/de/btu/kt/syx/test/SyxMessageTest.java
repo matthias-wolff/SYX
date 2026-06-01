@@ -36,29 +36,6 @@ public class SyxMessageTest extends ASyxTestCase
   private static final String TEST_SERIALIZATION
     = "SyxMessageTest: Serialization and Deserialization";
 
-  // Yamaha TG55 SysEx Format Specifiers
-
-  protected static final String F_TG55_PARCNG1      // Parameter change - s 
-    = "43H 1#H 35H 0sH ssH ppH[2] vvH[2]";
-
-  protected  static final String F_TG55_BULK_REQUEST // Bulk Request
-    = "43H 2#H 7AH 4CH 4DH 20H[2] 38H 31H 30H 33H ssH ttH 00H[14] xxH yyH";
-
-  protected  static final String F_TG55_BD_HEADER1   // Bulk header 1
-    = "43H 0#H 7AH bbH[2]";
-
-  protected  static final String F_TG55_BD_HEADER2   // Bulk header 2
-    = "4CH 4DH 20H[2] 38H 31H 30H 33H ssH ttH 00H[14] xxH yyH";
-
-  protected  static final String F_TG55_BDMU_HEADER  // MU Bulk - Header
-    = "aaH bbH ccH ddH eeH ffH ggH hhH iiH jjH 000sssss";
-
-  protected  static final String F_TG55_BDMU_EFFECT  // MU Bulk - Effect
-    = "ttH llH ppH qqH rrH";
-  protected  static final String F_TG55_BDMU_VOICE   // MU Bulk - Voice
-    = "0a000ooo 0000000m 00nnnnnn vvH ttH ssH 00pppppp eeH 0rH";
-
-
   // -- Tests -----------------------------------------------------------------
 
   @Test
@@ -73,7 +50,7 @@ public class SyxMessageTest extends ASyxTestCase
     logHrule();
     log("\n");
 
-    SyxDataStruct sds = new SyxDataStruct(F_TG55_BULK_REQUEST);
+    SyxDataStruct sds = new SyxDataStruct(TG55FormatSpecifiers.F_TG55_BULK_REQUEST);
     sds.setName("Yamaha TG55 Multi Bulk Request");
     sds.setMidiValue('#',0        ); // Device ID
     sds.setMidiValue('s',(byte)'M'); // Bulk type, 1st character
@@ -85,7 +62,7 @@ public class SyxMessageTest extends ASyxTestCase
     msg.addParts(sds);
 
     log("SyxMessage(format,data)\n");
-    log("- format: %s\n",F_TG55_BULK_REQUEST);
+    log("- format: %s\n",TG55FormatSpecifiers.F_TG55_BULK_REQUEST);
     log(0,3,"-> MidiMessage:\n");
     log(SYX.prettyPrintMidiMessage(msg));
     log(0,-3,"\n\n");
@@ -115,10 +92,10 @@ public class SyxMessageTest extends ASyxTestCase
     };
 
     // Create a SysEx message
-    SyxMessage msg = new SyxMessage(F_TG55_PARCNG1,data);
+    SyxMessage msg = new SyxMessage(TG55FormatSpecifiers.F_TG55_PARCNG1,data);
     msg.getParts()[0].setName("Yamaha TG55 Parameter Change (meaningless)");
     log("SyxMessage(format,data)\n");
-    log("- format: %s\n",F_TG55_PARCNG1);
+    log("- format: %s\n",TG55FormatSpecifiers.F_TG55_PARCNG1);
     log("- data:   %s\n\n",SYX.prettyPrintByteArray(data," ".repeat(8)));
     log(0,3,"-> MidiMessage:\n");
     log(SYX.prettyPrintMidiMessage(msg));
@@ -183,14 +160,14 @@ public class SyxMessageTest extends ASyxTestCase
     //Crate a SyxMessage    
     log(0,2,"Create a SyxMessage ...\n");
     SyxMessage msg1 = new SyxMessage();
-    msg1.addParts(new SyxDataStruct(F_TG55_BD_HEADER1 ,"Bulk header 1"));
-    msg1.addParts(new SyxDataStruct(F_TG55_BD_HEADER2 ,"Bulk header 2"));
-    msg1.addParts(new SyxDataStruct(F_TG55_BDMU_HEADER,"Multi header" ));
-    msg1.addParts(new SyxDataStruct(F_TG55_BDMU_EFFECT,"Effect"       ));
+    msg1.addParts(new SyxDataStruct(TG55FormatSpecifiers.F_TG55_BD_HEADER1 ,"Bulk header 1"));
+    msg1.addParts(new SyxDataStruct(TG55FormatSpecifiers.F_TG55_BD_HEADER2 ,"Bulk header 2"));
+    msg1.addParts(new SyxDataStruct(TG55FormatSpecifiers.F_TG55_BDMU_HEADER,"Multi header" ));
+    msg1.addParts(new SyxDataStruct(TG55FormatSpecifiers.F_TG55_BDMU_EFFECT,"Effect"       ));
     for (int i=0; i<16; i++)
     {
       String name = String.format("Channel %d Voice",i+1);
-      msg1.addParts(new SyxDataStruct(F_TG55_BDMU_VOICE,name));
+      msg1.addParts(new SyxDataStruct(TG55FormatSpecifiers.F_TG55_BDMU_VOICE,name));
     }
     msg1.addParts(new SyxChecksum(SyxChecksum.ROLAND,1,-1));
     msg1.setMessage(data,data.length);
