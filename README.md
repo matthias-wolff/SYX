@@ -4,4 +4,4 @@
 
 ### See Also
 
-[SYX.Devices](https://github.com/matthias-wolff/SYX.Devices)
+[SYX.Devices](https://github.com/matthias-wolff/SYX.Devices): Device-Specific MIDI SyxEx Data Models for SYX
