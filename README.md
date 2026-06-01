@@ -1,10 +1,10 @@
 # SYX - Handles MIDI System Exclusive Data
 
+SYX is a Java package which you can use to develop your own MIDI system exclusive communications application. SYX is  _not_  a SysEx librarian.
+
 [JavaDoc](https://www-docs.b-tu.de/fg-kommunikationstechnik/public/matthias.wolff/JavaDoc/SYX/index.html) - 
 [Getting Started](https://www-docs.b-tu.de/fg-kommunikationstechnik/public/matthias.wolff/JavaDoc/SYX/de/btu/kt/syx/tutorials/GettingStarted.html) - 
 [The Tutorials](https://www-docs.b-tu.de/fg-kommunikationstechnik/public/matthias.wolff/JavaDoc/SYX/de/btu/kt/syx/tutorials/package-summary.html)
-
-SYX is a Java package which you can use to develop your own MIDI system exclusive communications application. SYX is  _not_  a SysEx librarian.
 
 ## The Idea
 
