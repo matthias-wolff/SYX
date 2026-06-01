@@ -1,6 +1,6 @@
 # SYX - Handles MIDI System Exclusive Data
 
-\[More to come...\]
+\[ This repository is under construction... \]
 
 ### See Also
 
