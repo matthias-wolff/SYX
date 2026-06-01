@@ -51,11 +51,7 @@ The setters automatically prevent from setting parameter values which are negati
 *   **Device Models** – SYX features [device models](https://www-docs.b-tu.de/fg-kommunikationstechnik/public/matthias.wolff/JavaDoc/SYX/de/btu/kt/syx/devices/package-summary.html) which represent the state of a hardware synthesizer (as far as can be obtained through SysEx communication). The state may include [patch data](https://www-docs.b-tu.de/fg-kommunikationstechnik/public/matthias.wolff/JavaDoc/SYX/de/btu/kt/syx/devices/IPatch.html), [multi data](https://www-docs.b-tu.de/fg-kommunikationstechnik/public/matthias.wolff/JavaDoc/SYX/de/btu/kt/syx/devices/IMulti.html), system settings, [patch and multi banks](https://www-docs.b-tu.de/fg-kommunikationstechnik/public/matthias.wolff/JavaDoc/SYX/de/btu/kt/syx/devices/BankTree.html), etc. Device models can also encapsulate (device-specific) SysEx parameter change messages.
 *   **SysEx Data Tapes and SYX Files** – SYX provides a "[SysEx recorder](https://www-docs.b-tu.de/fg-kommunikationstechnik/public/matthias.wolff/JavaDoc/SYX/de/btu/kt/syx/util/SysexRecorder.html)" which can [record](https://www-docs.b-tu.de/fg-kommunikationstechnik/public/matthias.wolff/JavaDoc/SYX/de/btu/kt/syx/util/SysexRecorder.html#record(javax.sound.midi.SysexMessage)) and [play back](https://www-docs.b-tu.de/fg-kommunikationstechnik/public/matthias.wolff/JavaDoc/SYX/de/btu/kt/syx/util/SysexRecorder.html#play()) "tapes" containing sequences of system exclusive messages. The tapes can be [written to](https://www-docs.b-tu.de/fg-kommunikationstechnik/public/matthias.wolff/JavaDoc/SYX/de/btu/kt/syx/util/SysexRecorder.html#writeSyxFile(java.lang.String)) and [read from](https://www-docs.b-tu.de/fg-kommunikationstechnik/public/matthias.wolff/JavaDoc/SYX/de/btu/kt/syx/util/SysexRecorder.html#readSyxFile(java.lang.String)) SYX or TXT files.
 
-## Further Reading
-
-Please see [The Tutorials](https://www-docs.b-tu.de/fg-kommunikationstechnik/public/matthias.wolff/JavaDoc/SYX/de/btu/kt/syx/tutorials/package-summary.html) for coding examples.
-
-References
+## References
 
 * \[1\] Martin Russ: Everything You Ever Wanted To Know About System Exclusive. Sound On Sound, April 1989. [Online](https://www.muzines.co.uk/articles/everything-you-ever-wanted-to-know-about-system-exclusive/4539), retrieved May 12, 2026
 
