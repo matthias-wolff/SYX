@@ -1,6 +1,6 @@
 Go directly to [Getting Started](de/btu/kt/syx/tutorials/GettingStarted.html) or [The Tutorials](de/btu/kt/syx/tutorials/package-summary.html).
 
-# Introduction
+# SYX - Handles MIDI System Exclusive Data
 
 ## The Idea
 
