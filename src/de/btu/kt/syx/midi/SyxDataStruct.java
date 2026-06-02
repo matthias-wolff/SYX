@@ -11,7 +11,6 @@ import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.SysexMessage;
 
 import de.btu.kt.syx.SYX;
-import de.btu.kt.syx.devices.AInstrument;
 
 /**
  * A structured system exclusive data buffer. Instances of this class typically 

@@ -1,4 +1,4 @@
-package de.btu.kt.syx.apps;
+package de.btu.kt.syx.util;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -10,8 +10,6 @@ import java.util.regex.Pattern;
 import javax.sound.midi.MidiUnavailableException;
 
 import de.btu.kt.syx.test.ASyxTestCase;
-import de.btu.kt.syx.util.ILogger;
-import de.btu.kt.syx.util.MidiInterface;
 
 /**
  * Base class of console-based apps.

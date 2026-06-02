@@ -10,22 +10,13 @@
  *   <li>{@linkplain de.btu.kt.syx.tutorials.GettingStarted#createMI() Creating a MIDI Interface}</li>
  *   <li>{@linkplain de.btu.kt.syx.tutorials.GettingStarted#sendSysEx() Sending a System Exclusive Message}</li>
  *   <li>{@linkplain de.btu.kt.syx.tutorials.GettingStarted#receiveSysEx() Receiving a System Exclusive Message}</li>
- *   <li>{@linkplain de.btu.kt.syx.tutorials.GettingStarted#addParamInfo() Adding Parameter Information}</li>
  * </ol>
  * 
- * <h2 style="margin-top:1em">Handling Bulk Data</h2>
+ * <h2 style="margin-top:1em">Advanced Examples</h2>
  * <ol>
- *   <li>{@linkplain de.btu.kt.syx.tutorials.HandlingBulkData#fetchPatchName() Fetching a Patch Name}</li>
- *   <li>{@linkplain de.btu.kt.syx.tutorials.HandlingBulkData#createSimplePatchBank() Creating a Simple Patch Bank}</li>
- *   <li>{@linkplain de.btu.kt.syx.tutorials.HandlingBulkData#syxFiles() Reading and Writing SysEx Files}</li>
- * </ol>
- * 
- * <h2 style="margin-top:1em">Advanced Coding Examples</h2>
- * <ol>
- *   <li>{@linkplain de.btu.kt.syx.devices.vz1.VZ1Patch A Patch Model for Casio VZ-1/10M}</li>
- *   <li>{@linkplain de.btu.kt.syx.devices.tg55.TG55 A Multi Model for Yamaha SY55/TG55}</li>
- *   <li>{@linkplain de.btu.kt.syx.apps.vz1.VZ1PatchAppc A Test App for VZ-1/10M Patches}</li>
- *   <li>{@linkplain de.btu.kt.syx.apps.vz1.VZ1PatchBankAppc A Test App for VZ-1/10M Patch Banks}</li>
+ *   <li>{@linkplain de.btu.kt.syx.tutorials.AdvancedExamples#addParamInfo() Adding Parameter Information}</li>
+ *   <li>{@linkplain de.btu.kt.syx.tutorials.AdvancedExamples#fetchPatchName() Fetching a Patch Name}</li>
+ *   <li>{@linkplain de.btu.kt.syx.tutorials.AdvancedExamples#syxFiles() Reading and Writing SysEx Files}</li>
  * </ol>
  * 
  * @author Matthias Wolff

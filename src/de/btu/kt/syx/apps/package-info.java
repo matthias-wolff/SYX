@@ -1,8 +1,0 @@
-/**
- * JUnit test cases
- * 
- * @author Matthias Wolff
- */
-package de.btu.kt.syx.apps;
-
-// EOF

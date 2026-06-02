@@ -5,8 +5,6 @@ import javax.sound.midi.SysexMessage;
 
 import de.btu.kt.syx.NotSupportedException;
 import de.btu.kt.syx.SYX;
-import de.btu.kt.syx.devices.BankTree;
-import de.btu.kt.syx.devices.IPatch;
 import de.btu.kt.syx.midi.ISysexMessageListener;
 import de.btu.kt.syx.midi.SyxChecksum;
 import de.btu.kt.syx.midi.SyxDataStruct;
@@ -21,29 +19,29 @@ import de.btu.kt.syx.util.SysexRecorder;
  * Coding examples of handling bulk data.
  * <hr>
  * <p>
- *   [&lt;prev]
+ *   [{@linkplain de.btu.kt.syx.tutorials &lt;prev}]
  *   | Back to 
  *     [{@linkplain de.btu.kt.syx.tutorials Tutorials}]
- *   | [{@linkplain HandlingBulkData#fetchPatchName() next&gt;}]
+ *   | [{@linkplain AdvancedExamples#addParamInfo() next&gt;}]
  * </p>
  * 
- * <h2>Getting Started</h2>
+ * <h2>Advanced Examples</h2>
  * <ol>
+ *   <li>{@linkplain #addParamInfo() Adding Parameter Information}</li>
  *   <li>{@linkplain #fetchPatchName() Fetching a Patch Name}</li>
- *   <li>{@linkplain #createSimplePatchBank() Creating a Simple Patch Bank}</li>
  *   <li>{@linkplain #syxFiles() Reading and Writing SysEx Files}</li>
  * </ol>
  * 
  * @author Matthias Wolff
  */
-public class HandlingBulkData
+public class AdvancedExamples
 {
 
   // -- Fields ----------------------------------------------------------------
 
   /**
    * Main thread {@linkplain ILogger logger}. Supplied by class {@link
-   * HandlingBulkData} for pretty console print-outs.
+   * AdvancedExamples} for pretty console print-outs.
    */
   static ILogger mainLog = new ILogger()
   {
@@ -64,7 +62,7 @@ public class HandlingBulkData
 
   /**
    * SysEx message receiver {@linkplain ILogger logger}. Supplied by class
-   * {@link HandlingBulkData} for pretty console print-outs.
+   * {@link AdvancedExamples} for pretty console print-outs.
    */
   static ILogger rcvrLog = new ILogger()
   {
@@ -88,7 +86,7 @@ public class HandlingBulkData
   /**
    * This class cannot be instantiated
    */
-  private HandlingBulkData()
+  private AdvancedExamples()
   throws NotSupportedException
   {
     throw new NotSupportedException();
@@ -97,14 +95,336 @@ public class HandlingBulkData
   // -- Tutorials -------------------------------------------------------------
 
   /**
+   * Demonstrates how to add parameter information.
+   * <hr>
+   * <p>
+   *   [{@linkplain AdvancedExamples &lt;prev}]
+   *   | Back to 
+   *     [{@linkplain AdvancedExamples Advanced Examples}]
+   *     [{@linkplain de.btu.kt.syx.tutorials Tutorials}]
+   *   | [{@linkplain #fetchPatchName() next&gt;}]
+   * </p>
+   * 
+   * <h2 style="margin-top:0">Adding Parameter Information</h2>
+   * <p>In most cases, the "MIDI value" of a parameter as stored in the SysEx
+   * message does not equal the respective "model value" as displayed on the
+   * device. There are also cases where not every MIDI value which can
+   * potentially be stored in the respective parameter bits of the SysEx message
+   * are permissible. For code clarity (and also for parameter validation) it is
+   * desirable to work with the model values rather than with the MIDI values.
+   * To this end, SYX features {@linkplain SyxParamInfo parameter information}.
+   * </p>
+   * 
+   * <p>We will enhance the {@linkplain GettingStarted#receiveSysEx() last
+   * example} by adding parameter information to the received error messages.
+   * We use the same Java code and just modify the {@link
+   * ISysexMessageListener#receiveSysexMsg(SysexMessage, long)
+   * receiveSysexMsg}{@code (}&hellip;{@code )} method of the {@linkplain
+   * ISysexMessageListener SysEx message listener}:</p>
+   * <pre>  &#64;Override
+   *  public void {@link ISysexMessageListener#receiveSysexMsg(SysexMessage, long) receiveSysexMsg}({@link SysexMessage} sxMsg, long timeStamp)
+   *  throws {@link InvalidMidiDataException}
+   *  {
+   *    {@link SyxDataStruct} prt;
+   *    {@link SyxParamInfo}  pi;</pre>
+   * 
+   * <p>If we use parameter information, each parameter in the SysEx message 
+   * needs a unique identifier (UID). Therefore, we define such UIDs for the two
+   * parameters, device number and error number:</p>
+   * <pre>    final String UID_DEVICE_NUM = "DEVICE_NUM";
+   *    final String UID_ERROR_MSG  = "ERROR_MSG";</pre>
+   * 
+   * <p>First, we create one {@linkplain SyxDataStruct message part } for the
+   * content of the error message:</p>
+   * <pre>    final String errMsgFormat = "43H 1#H 35H 7FH 00H[4] eeH";
+   *    prt = new {@link SyxDataStruct#SyxDataStruct(String, String) SyxDataStruct}(errMsgFormat,"Error Information");</pre>
+   * 
+   * <p>Now we add parameter information to the part. We start with the device
+   * number '#'. The MIDI value is in the range
+   * [&hairsp;0x00,&hairsp;0x0F&hairsp;]. The model is offset by one and takes
+   * values in the range [&hairsp;1,&hairsp;16] The respective parameter
+   * information is:</p>
+   * <pre>    pi = new {@link SyxParamInfo#SyxParamInfo(SyxDataStruct, char, String, String) SyxParamInfo}(prt,'#',UID_DEVICE_NUM,"Device");
+   *    pi.{@link SyxParamInfo#setValueRange(int, int, int) setValueRange}(0x00,0x0F,1);</pre>
+   * 
+   * <p>Don't forget to add the parameter information to the part:</p>
+   * <pre>    prt.{@link SyxDataStruct#addParamInfo(SyxParamInfo) addParamInfo}(pi);</pre>
+   * 
+   * <p>Next we add information for the error number parameter 'e'. It has 7
+   * bits, i.e., a potential MIDI value range of
+   * [&hairsp;0x00,&hairsp;0x7F&hairsp;]. Actually, its permissible MIDI values
+   * are in the range [&hairsp;0x01,&hairsp;0x20&hairsp;] (see [1], pp.
+   * Add-16,17). Further, the parameter has plain-text model values. Hence, the
+   * parameter information is:</p>
+   * <pre>    int[]    errVals = {@link SYX}.{@link SYX#getIntRange(int, int) getIntRange}(0x01,0x20);
+   *    String[] errMsgs = new String[]
+   *    {
+   *      "MIDI Buffer Full" /&#42;0x01&#42;/, "SEQ Buffer Full"  /&#42;0x02&#42;/,
+   *      "MIDI Data"        /&#42;0x03&#42;/, "MIDI Check Sum"   /&#42;0x04&#42;/,
+   *      "MIDI Device Off"  /&#42;0x05&#42;/, "MIDI Bulk Prot."  /&#42;0x06&#42;/,
+   *      "No Data Card"     /&#42;0x07&#42;/, "Data Card Prot."  /&#42;0x08&#42;/,
+   *      "Data Format"      /&#42;0x09&#42;/, "Illegal Data"     /&#42;0x0A&#42;/,
+   *      "Verify Failed"    /&#42;0x0B&#42;/, "Internal Bat.Lo"  /&#42;0x0C&#42;/,
+   *      "Data Card Bat.Lo" /&#42;0x0D&#42;/, "SEQ Memory Full"  /&#42;0x0E&#42;/,
+   *      "SEQ Data Empty"   /&#42;0x0F&#42;/, "Now SEQ Running"  /&#42;0x10&#42;/,
+   *      "Song Data Exist"  /&#42;0x11&#42;/, "Internal Bat.NG"  /&#42;0x12&#42;/,
+   *      "Data Card Bat.NG" /&#42;0x13&#42;/, "ID Mismatch"      /&#42;0x14&#42;/,
+   *      "No Wave Card"     /&#42;0x15&#42;/, "Wrong Wave Card"  /&#42;0x16&#42;/,
+   *      "Now SEQ Runnning" /&#42;0x17&#42;/, "(not defined)"    /&#42;0x18&#42;/,
+   *      "Voice Type"       /&#42;0x19&#42;/, "Song cleared"     /&#42;0x1A&#42;/,
+   *      "(not error 0x1B)" /&#42;0x1B&#42;/, "(not error 0x1C)" /&#42;0x1C&#42;/,
+   *      "(not error 0x1D)" /&#42;0x1D&#42;/, "Bulk Received"    /&#42;0x1E&#42;/,
+   *      "Bulk Receiving"   /&#42;0x1F&#42;/, "Bulk Canceled"    /&#42;0x20&#42;/
+   *    };
+   *    pi = new {@link SyxParamInfo#SyxParamInfo(SyxDataStruct, char, String, java.util.SequencedMap, String) SyxParamInfo}(prt,'e',UID_ERROR_MSG,"Error Message");
+   *    pi.{@link SyxParamInfo#setValueMap(int[], String[]) setValueMap}(errVals,errMsgs);
+   *    prt.{@link SyxDataStruct#addParamInfo(SyxParamInfo) addParamInfo}(pi);</pre>
+   * 
+   *    <p>Now we can parse the received SysEx message:</p> 
+   *    <pre>    byte[] syxData = sxMsg.{@link SysexMessage#getMessage() getMessage}();
+   *    {@link SyxMessage} errMsg = new {@link SyxMessage#SyxMessage(SyxDataStruct...) SyxMessage}(prt);
+   *    errMsg.{@link SyxMessage#setMessage(byte[], int) setMessage}(syxData,syxData.length);</pre>
+   * 
+   *    <p>Let's look what we've got. We print different views on the parsed
+   *    SysEx message. First the message itself:</p>
+   *    <pre>    System.out.println("Received error message from TG55:");
+   *    System.out.println(errMsg.{@link SyxMessage#prettyPrint() prettyPrint}());
+   * 
+   *    > Received error message from TG55:
+   *    > 0000 F0H (System exclusive)
+   *    > Part   0 : 0001 'Error Information' (9 bytes) 
+   *    > 0001 43H - 01000011 11111111
+   *    > 0002 10H - 0001#### 11110000 : # ( 4 bits) =   0x00     0      Device = 1
+   *    > 0003 35H - 00110101 11111111
+   *    > 0004 7FH - 01111111 11111111
+   *    > 0005 00H - 00000000 11111111
+   *    > 0006 00H - 00000000 11111111
+   *    > 0007 00H - 00000000 11111111
+   *    > 0008 00H - 00000000 11111111
+   *    > 0009 20H - 0eeeeeee 10000000 : e ( 7 bits) =   0x20    32  ' ' Error Message = Bulk Canceled
+   *    > EOX
+   *    > 0010 F7H (System Common - End of system exclusive)
+   *    > 11 bytes</pre>
+   * 
+   *    <p>Then we print details of the data part:</p>
+   *    <pre>    System.out.println("\nDetails of Part 0: "+prt.{@link SyxDataStruct#prettyPrint() prettyPrint}());
+   *    
+   *    > Details of Part 0: 'Error Information'
+   *    > - Length: 9 bytes
+   *    > - Data:   43 10 35 7F 00 00 00 00 20 
+   *    >           01000011 00010000 00110101 01111111 00000000 00000000 00000000 00000000 
+   *    >           00100000 
+   *    > - Format: 01000011 0001#### 00110101 01111111 00000000 00000000 00000000 00000000
+   *    >           0eeeeeee 
+   *    > - Filter: 11111111 11110000 11111111 11111111 11111111 11111111 11111111 11111111 
+   *    >           10000000 
+   *    > - Params: # - length  : 4 bits
+   *    >               value   : 0x00  0
+   *    >               default : 0x00  0
+   *    >               UID     : 'DEVICE_NUM'
+   *    >               descr   : 'Device'
+   *    >               par.chg.: (not assigned)
+   *    >               val.rng.: [0,15]
+   *    >               val.ofs.: 1
+   *    >           e - length  : 7 bits
+   *    >               value   : 0x20  32  ' ' = 'Bulk Canceled'
+   *    >               default : 0x01  1
+   *    >               UID     : 'ERROR_MSG'
+   *    >               descr   : 'Error Message'
+   *    >               par.chg.: (not assigned)
+   *    >               values  : 0x01: 'MIDI Buffer Full'
+   *    >                         0x02: 'SEQ Buffer Full'
+   *    >                         0x03: 'MIDI Data'
+   *    >                         0x04: 'MIDI Check Sum'
+   *    >                         0x05: 'MIDI Device Off'
+   *    >                         0x06: 'MIDI Bulk Prot.'
+   *    >                         0x07: 'No Data Card'
+   *    >                         0x08: 'Data Card Prot.'
+   *    >                         0x09: 'Data Format'
+   *    >                         0x0A: 'Illegal Data'
+   *    >                         0x0B: 'Verify Failed'
+   *    >                         0x0C: 'Internal Bat.Lo'
+   *    >                         0x0D: 'Data Card Bat.Lo'
+   *    >                         0x0E: 'SEQ Memory Full'
+   *    >                         0x0F: 'SEQ Data Empty'
+   *    >                         0x10: 'Now SEQ Running'
+   *    >                         0x11: 'Song Data Exist'
+   *    >                         0x12: 'Internal Bat.NG'
+   *    >                         0x13: 'Data Card Bat.NG'
+   *    >                         0x14: 'ID Mismatch'
+   *    >                         0x15: 'No Wave Card'
+   *    >                         0x16: 'Wrong Wave Card'
+   *    >                         0x17: 'Now SEQ Runnning'
+   *    >                         0x18: '(not defined)'
+   *    >                         0x19: 'Voice Type'
+   *    >                         0x1A: 'Song cleared'
+   *    >                         0x1B: '(not error 0x1B)'
+   *    >                         0x1C: '(not error 0x1C)'
+   *    >                         0x1D: '(not error 0x1D)'
+   *    >                         0x1E: 'Bulk Received'
+   *    >                         0x1F: 'Bulk Receiving'
+   *    >                         0x20: 'Bulk Canceled'</pre>
+   * 
+   *    <p>Finally, we print the message properties along with their values:</p>
+   *    <pre>    System.out.println("Message properties:");
+   *    String UIDs[] = errMsg.{@link SyxMessage#findParamUIDsSimple(String) findParamUIDsSimple}("*");
+   *    for (String UID : UIDs)
+   *    {
+   *      String mVal = errMsg.{@link SyxMessage#getModelValueAsString(String) getModelValueAsString}(UID);
+   *      String s = String.format("%-10s = %s",UID,mVal);
+   *      System.out.println(s);
+   *    }
+   *    
+   *    > Message properties:
+   *    > DEVICE_NUM = 1
+   *    > ERROR_MSG  = Bulk Canceled
+   *    
+   *  }</pre>
+   */
+  public static void addParamInfo()
+  {
+    
+    final int     devNum = 0; // <- Your zero-based device number here
+    final String  miName = "KOMPLETE KONTROL EXT - 1"; // <- Name of your MIDI interface here
+    MidiInterface mi     = null;
+    try
+    {
+      mi = new MidiInterface(miName);
+      mi.open();
+  
+      mi.addSysExListener(new ISysexMessageListener()
+      {
+  
+        @Override
+        public void receiveSysexMsg(SysexMessage sxMsg, long timeStamp)
+        throws InvalidMidiDataException
+        {
+          SyxDataStruct prt;
+          SyxParamInfo  pi;
+  
+          // Define Parameter UIDs
+          final String UID_DEVICE_NUM = "DEVICE_NUM";
+          final String UID_ERROR_MSG  = "ERROR_MSG";
+  
+          // Create one SysEx message part
+          final String errMsgFormat = "43H 1#H 35H 7FH 00H[4] eeH";
+          prt = new SyxDataStruct(errMsgFormat,"Error Information");
+  
+          // Add information for parameter '#' (device number)
+          pi = new SyxParamInfo(prt,'#',UID_DEVICE_NUM,"Device");
+          pi.setValueRange(0x00,0x0F,1);
+          prt.addParamInfo(pi);
+  
+          // Add information for parameter 'e' (error number)
+          int[]    errVals = SYX.getIntRange(0x01,0x20);
+          String[] errMsgs = new String[]
+          {
+            "MIDI Buffer Full" /*0x01*/, "SEQ Buffer Full"  /*0x02*/,
+            "MIDI Data"        /*0x03*/, "MIDI Check Sum"   /*0x04*/,
+            "MIDI Device Off"  /*0x05*/, "MIDI Bulk Prot."  /*0x06*/,
+            "No Data Card"     /*0x07*/, "Data Card Prot."  /*0x08*/,
+            "Data Format"      /*0x09*/, "Illegal Data"     /*0x0A*/,
+            "Verify Failed"    /*0x0B*/, "Internal Bat.Lo"  /*0x0C*/,
+            "Data Card Bat.Lo" /*0x0D*/, "SEQ Memory Full"  /*0x0E*/,
+            "SEQ Data Empty"   /*0x0F*/, "Now SEQ Running"  /*0x10*/,
+            "Song Data Exist"  /*0x11*/, "Internal Bat.NG"  /*0x12*/,
+            "Data Card Bat.NG" /*0x13*/, "ID Mismatch"      /*0x14*/,
+            "No Wave Card"     /*0x15*/, "Wrong Wave Card"  /*0x16*/,
+            "Now SEQ Runnning" /*0x17*/, "(not defined)"    /*0x18*/,
+            "Voice Type"       /*0x19*/, "Song cleared"     /*0x1A*/,
+            "(not error 0x1B)" /*0x1B*/, "(not error 0x1C)" /*0x1C*/,
+            "(not error 0x1D)" /*0x1D*/, "Bulk Received"    /*0x1E*/,
+            "Bulk Receiving"   /*0x1F*/, "Bulk Canceled"    /*0x20*/
+          };
+          pi = new SyxParamInfo(prt,'e',UID_ERROR_MSG,"Error Message");
+          pi.setValueMap(errVals,errMsgs);
+          prt.addParamInfo(pi);
+  
+          // Try to parse as TG55 error message
+          byte[] syxData = sxMsg.getMessage();
+          SyxMessage errMsg = new SyxMessage(prt);
+          errMsg.setMessage(syxData,syxData.length);
+  
+          // Print different views of the error message
+          System.out.println("Received error message from TG55:");
+          System.out.println(errMsg.prettyPrint());
+  
+          System.out.println("\nDetails of Part 0: "+prt.prettyPrint());
+  
+          System.out.println("Message properties:");
+          String UIDs[] = errMsg.findParamUIDsSimple("*");
+          for (String UID : UIDs)
+          {
+            String mVal = errMsg.getModelValueAsString(UID);
+            String s = String.format("%-10s = %s",UID,mVal);
+            System.out.println(s);
+          }
+        }
+  
+        @Override
+        public int getDevNum()
+        {
+          return devNum;
+        }
+  
+      });
+  
+      // Create nonsense bulk message
+      // - Part 0: Bulk header 1
+      SyxDataStruct prt0 = new SyxDataStruct(TG55FormatSpecifiers.F_TG55_BD_HEADER1,"Bulk Header 1");
+      prt0.setMidiValue('#',devNum); // Device no. 1
+      prt0.setMidiValue('b',0x013A); // Payload size (number of bytes)
+  
+      // - Part 1: Bulk header 2
+      SyxDataStruct prt1 = new SyxDataStruct(TG55FormatSpecifiers.F_TG55_BD_HEADER2,"Bulk Header 2");
+      prt1.setMidiValue('s','M');  // Multi bulk type
+      prt1.setMidiValue('t','U');  // Multi bulk type
+      prt1.setMidiValue('x',0x7F); // Edit buffer
+      prt1.setMidiValue('y',0x00); // Memory number
+  
+      // - Part 2: Nonsense Multi data (wrong size and invalid data)
+      SyxDataStruct prt2 = new SyxDataStruct("00H[10]","Nonsense multi data");
+  
+      // - Part 3: Checksum
+      SyxDataStruct prt3 = new SyxChecksum(SyxChecksum.ROLAND,1,-1);
+  
+      // Create nonsense bulk message
+      SyxMessage blkMsg = new SyxMessage();
+      blkMsg.addParts(prt0,prt1,prt2,prt3);
+  
+      // Send the message (will trigger a "Bulk Canceled" error)
+      mi.send(blkMsg);
+  
+      // Wait a little for the response
+      Thread.sleep(2000);
+  
+      // Push the [EXIT] button at TG55 (clears the error message)
+      final String msgExitBtnFormat = "43H 1#H 35H 0DH 00H[2] 08H 00H 40H";
+      SyxDataStruct prt = new SyxDataStruct(msgExitBtnFormat);
+      prt.setMidiValue('#',devNum);
+      mi.send(new SyxMessage(prt));
+  
+    }
+    catch (Exception e)
+    {
+      e.printStackTrace();
+    }
+    finally
+    {
+      if (mi!=null)
+        mi.close();
+    }
+  }
+
+  /**
    * Demonstrates how to fetch a patch name from a device.
    * <hr>
    * <p>
-   *   [{@linkplain HandlingBulkData &lt;prev}]
+   *   [{@linkplain #addParamInfo() &lt;prev}]
    *   | Back to 
-   *     [{@linkplain HandlingBulkData Handling Bulk Data}]
+   *     [{@linkplain AdvancedExamples Advanced Examples}]
    *     [{@linkplain de.btu.kt.syx.tutorials Tutorials}]
-   *   | [{@linkplain HandlingBulkData#createSimplePatchBank() next&gt;}]
+   *   | [{@linkplain #syxFiles() next&gt;}]
    * </p>
    * 
    * <h2 style="margin-top:1em">Fetching a Patch Name</h2>
@@ -144,7 +464,7 @@ public class HandlingBulkData
    * 19        {@link #rcvrLog}.{@link ILogger#log(String, Object...) log}({@link SYX}.{@link SYX#prettyPrintByteArray(byte[], String) prettyPrintByteArray}(syxData,""));
    * 20        {@link #rcvrLog}.{@link ILogger#log(int, int, String, Object...) log}(0,-2,"\n\n");</pre>
    * <p>({@link #rcvrLog} is an interface to SYX's  {@linkplain ILogger global
-   * message logger} supplied by class {@link HandlingBulkData} to ease console
+   * message logger} supplied by class {@link AdvancedExamples} to ease console
    * print-outs).</p>
    * 
    * <p>Now we detect whether the received SysEx message is a TG55 bulk dump (of
@@ -258,7 +578,7 @@ public class HandlingBulkData
    * 87      }
    * 88    }</pre>
    * <p>({@link #mainLog} is an interface to SYX's  {@linkplain ILogger global
-   * message logger} supplied by class {@link HandlingBulkData} to ease console
+   * message logger} supplied by class {@link AdvancedExamples} to ease console
    * print-outs).</p>
    * 
    * <p>If we received a voice bulk dump in reply to the request, {@code blkDmp}
@@ -425,426 +745,12 @@ public class HandlingBulkData
   }
 
   /**
-   * Demonstrates how to create simple a patch bank.
-   * <hr>
-   * <p>
-   *   [{@linkplain HandlingBulkData#fetchPatchName() &lt;prev}]
-   *   | Back to 
-   *     [{@linkplain HandlingBulkData Handling Bulk Data}]
-   *     [{@linkplain de.btu.kt.syx.tutorials Tutorials}]
-   *   | [{@linkplain HandlingBulkData#syxFiles() next&gt;}]
-   * </p>
-   * 
-   * <h2 style="margin-top:1em">Creating a Simple Patch Bank</h2>
-   * <p>We extend the {@linkplain #fetchPatchName() previous example} by
-   * fetching <em>all</em> patches from TG55 and collecting them in a
-   * {@linkplain BankTree patch bank}. As most of the Java code is identical, we
-   * will only look at the modifications:</p>
-   * <ol>
-   *   <li style="margin-bottom:1em">We remove the lengthy console print-outs.</p>
-   *   <li>Before line 5 in the {@linkplain #fetchPatchName() previous example},
-   *     we create value maps for the 'x' and 'y' parameters of {@linkplain
-   *     TG55#F_BD_HEADER2 bulk header #2} (see [1], p. Add-6):
-   *     <pre> final int[]    bankNums  = new int[] {0x00, 0x02};
-   * final String[] bankIDs   = new String[] {"I","P"};
-   * final int[]    patchNums = {@link SYX}.{@link SYX#getIntRange(int, int) getIntRange}(0x00,0x3F);
-   * final String[] patchIDs  = new String[0x40];
-   * for (int i=0x00; i&lt;=0x3F; i++)
-   *   patchIDs[i] = String.format("%02d",i+1);</pre></li>
-   *   <li style="margin-bottom:1em">At the same location we create a patch bank object:
-   *     <pre> {@link BankTree}&lt;{@link BankTree.IBankObject}&gt; patchBank
-   *   = new {@link BankTree#BankTree(String, String) BankTree}&lt;{@link BankTree.IBankObject}&gt;("Patch","Patch Bank");
-   * patchBank.{@link BankTree#addBank(String, String) addBank}(bankIDs[0],"Internal");
-   * patchBank.{@link BankTree#addBank(String, String) addBank}(bankIDs[1],"Preset");</pre>
-   *    In this example we create a simple patch bank which will only contain
-   *    the patch names. Patch banks can also contain {@linkplain IPatch patch
-   *    data} (see {@link VZ1PatchBankAppc} for an advanced example).</li>
-   *   <li style="margin-bottom:1em">We replace line 32 in the {@linkplain 
-   *     ISysexMessageListener#receiveSysexMsg(SysexMessage) SysEx message
-   *     listener} of the {@linkplain #fetchPatchName() previous example} by:
-   *     <pre> {@link SyxDataStruct} blkHdr2;
-   * {@link SyxParamInfo} pi;
-   * blkHdr2 = new {@link SyxDataStruct#SyxDataStruct(String, String) SyxDataStruct}({@link TG55}.{@link TG55#F_BD_HEADER2 F_BD_HEADER2},"Bulk Header 2");
-   * pi = new {@link SyxParamInfo#SyxParamInfo(SyxDataStruct, char, String, String) SyxParamInfo}(blkHdr2,'x',"BANK_ID","Bank ID");
-   * pi.{@link SyxParamInfo#setValueMap(int[], String[]) setValueMap}(bankNums,bankIDs);
-   * blkHdr2.{@link SyxDataStruct#addParamInfo(SyxParamInfo) addParamInfo}(pi);
-   * pi = new {@link SyxParamInfo#SyxParamInfo(SyxDataStruct, char, String, String) SyxParamInfo}(blkHdr2,'y',"PATCH_ID","Patch ID");
-   * pi.{@link SyxParamInfo#setValueMap(int[], String[]) setValueMap}(patchNums,patchIDs);
-   * blkHdr2.{@link SyxDataStruct#addParamInfo(SyxParamInfo) addParamInfo}(pi);
-   * rcvMsg.{@link SyxMessage#addParts(SyxDataStruct...) addParts}(blkHdr2);</pre>
-   *     which assigns the value maps created in 2. to the parameters 'x' and
-   *     'y' in the second bulk header of the received bulk dump (see {@linkplain
-   *     GettingStarted Getting Started}/{@linkplain GettingStarted#addParamInfo()
-   *     Adding Parameter Information}). This allows us to retrieve plain-text
-   *     bank and patch IDs (as shown on the synthesizer) from the voice bulks
-   *     we are going to fetch.</li>
-   *   <li>We replace lines 67&ndash;99 in the {@linkplain #fetchPatchName()
-   *     previous example} by nested loops over the bank patch numbers from 2.
-   *     <pre> {@link #mainLog}.{@link ILogger#log(int, int, String, Object...) log}(0,2,"Fetching patch names");
-   * for (int bankNum : bankNums)
-   *   for (int patchNum : patchNums)
-   *   {</pre>
-   *      Create voice bulk request for bank {@code bankNum} and patch {@code
-   *      patchNum}:
-   *    <pre>     {@link SyxDataStruct} prt = new {@link SyxDataStruct#SyxDataStruct(String) SyxDataStruct}(TG55FormatSpecifiers.F_TG55_BULK_REQUEST);
-   *     prt.{@link SyxDataStruct#setMidiValue(char, int) setMidiValue}('#',devNum  ); // Device no.
-   *     prt.{@link SyxDataStruct#setMidiValue(char, int) setMidiValue}('s','V'     ); // Voice bulk type
-   *     prt.{@link SyxDataStruct#setMidiValue(char, int) setMidiValue}('t','C'     ); // Voice bulk type
-   *     prt.{@link SyxDataStruct#setMidiValue(char, int) setMidiValue}('x',bankNum ); // Bank no.
-   *     prt.{@link SyxDataStruct#setMidiValue(char, int) setMidiValue}('y',patchNum); // Patch no.
-   *    {@link SyxMessage} blkReq = new {@link SyxMessage#SyxMessage(SyxDataStruct...) SyxMessage}(prt);</pre>
-   *      Send bulk request and wait for voice bulk dump:
-   *    <pre>     blkDmp.{@link SyxMessage#clear() clear}();
-   *     synchronized (blkDmp)
-   *     {
-   *       mi.{@link MidiInterface#send(javax.sound.midi.MidiMessage) send}(blkReq);
-   *       try
-   *       {
-   *         blkDmp.wait(2000);
-   *       }
-   *       catch (InterruptedException e)
-   *       { // Ignore
-   *       }
-   *     }</pre>
-   *      If we received a bulk dump, read the bank and patch IDs, and the patch
-   *      name. Then create a patch bank entry:
-   *     <pre>
-   *     if (!blkDmp.{@link SyxMessage#isEmpty() isEmpty}())
-   *     {
-   *       if (patchNum==0)
-   *         {@link #mainLog}.{@link ILogger#log(String, Object...) log}("\n");
-   *       {@link #mainLog}.{@link ILogger#log(String, Object...) log}(".");
-   * 
-   *       // Get and print patch name
-   *       {@link SyxDataStruct} blkHdr2 = blkDmp.{@link SyxMessage#getPart(int) getPart}(1);
-   *       {@link SyxDataStruct} vceHdr  = blkDmp.{@link SyxMessage#getPart(int) getPart}(2);
-   *       String bankID    = blkHdr2.{@link SyxDataStruct#getModelValueAsString(char) getModelValueAsString}('x');
-   *       String patchID   = blkHdr2.{@link SyxDataStruct#getModelValueAsString(char) getModelValueAsString}('y');
-   *       String patchName = vceHdr.{@link SyxDataStruct#readString(String) readString}("a-j");
-   *       patchBank.{@link BankTree#addBankObject(String, String, String) addBankObject}(bankID,patchID,patchName);
-   *     }
-   *     else
-   *       {@link #mainLog}.{@link ILogger#errlog(String, Object...) errlog}(".");
-   *   }
-   *   
-   * {@link #mainLog}.{@link ILogger#log(int, int, String, Object...) log}(0,-2,"\n");
-   * {@link #mainLog}.{@link ILogger#log(String, Object...) log}("Done\n\n");
-   *
-   * > MAIN    : Fetching patch names
-   * > MAIN    :   ................................................................
-   * > MAIN    :   ................................................................
-   * > MAIN    : Done</pre>
-   *      Finally, we pretty-print the patch bank:
-   *     <pre> {@link #mainLog}.{@link ILogger#log(String, Object...) log}(patchBank.{@link BankTree#prettyPrint() prettyPrint}());</pre>
-   *      On my TG55 it looks as follows:
-   * <pre> > MAIN    : ------------------------------
-   * > MAIN    : Patch Bank      UID Name         
-   * > MAIN    : ------------------------------
-   * > MAIN    : Bank Tree     :     Patch Bank
-   * > MAIN    : |- Patch Bank : I   Internal
-   * > MAIN    : |- |- Patch   : 01  ZenAirBell
-   * > MAIN    : |- |- Patch   : 02  GenChorus 
-   * > MAIN    : |- |- Patch   : 03  GB-Chorus 
-   * > MAIN    : |- |- Patch   : 04  SP.PanPipe
-   * > MAIN    : |- |- Patch   : 05  INIT VOICE
-   * > MAIN    : |- |- Patch   : 06  SP:DreamPd
-   * > MAIN    : |- |- Patch   : 07  SC.Dazling
-   * > MAIN    : |- |- Patch   : 08  SP:Lonely 
-   * > MAIN    : |- |- Patch   : 09  SP*Synfony
-   * > MAIN    : |- |- Patch   : 10  SE:Fredy  
-   * > MAIN    : |- |- Patch   : 11  ME*SynWave
-   * > MAIN    : |- |- Patch   : 12  ~ A Bow  
-   * > MAIN    : |- |- Patch   : 13  ClassPiano
-   * > MAIN    : |- |- Patch   : 14  Rock Piano
-   * > MAIN    : |- |- Patch   : 15  SE:"Hit!!"
-   * > MAIN    : |- |- Patch   : 16  ST:StrDust
-   * > MAIN    : |- |- Patch   : 17  GX Dream  
-   * > MAIN    : |- |- Patch   : 18  HardAtckGX
-   * > MAIN    : |- |- Patch   : 19  Deep Organ
-   * > MAIN    : |- |- Patch   : 20  Warm Organ
-   * > MAIN    : |- |- Patch   : 21  Trumpet   
-   * > MAIN    : |- |- Patch   : 22  BA:Rezo   
-   * > MAIN    : |- |- Patch   : 23  Big Band  
-   * > MAIN    : |- |- Patch   : 24  Orch Brass
-   * > MAIN    : |- |- Patch   : 25  SynthBrass
-   * > MAIN    : |- |- Patch   : 26  Flute     
-   * > MAIN    : |- |- Patch   : 27  Saxophone 
-   * > MAIN    : |- |- Patch   : 28  FolkGuitar
-   * > MAIN    : |- |- Patch   : 29  12 String 
-   * > MAIN    : |- |- Patch   : 30  MuteGuitar
-   * > MAIN    : |- |- Patch   : 31  SingleCoil
-   * > MAIN    : |- |- Patch   : 32  Pick Bass 
-   * > MAIN    : |- |- Patch   : 33  Thumb Bass
-   * > MAIN    : |- |- Patch   : 34  SynBadBass
-   * > MAIN    : |- |- Patch   : 35  VCO Bass  
-   * > MAIN    : |- |- Patch   : 36  Violin    
-   * > MAIN    : |- |- Patch   : 37  ChamberStr
-   * > MAIN    : |- |- Patch   : 38  VCF String
-   * > MAIN    : |- |- Patch   : 39  Nova Quire
-   * > MAIN    : |- |- Patch   : 40  Vibraphone
-   * > MAIN    : |- |- Patch   : 41  Takerimba 
-   * > MAIN    : |- |- Patch   : 42  ShortBell 
-   * > MAIN    : |- |- Patch   : 43  WarmBell  
-   * > MAIN    : |- |- Patch   : 44  PC:ItoChim
-   * > MAIN    : |- |- Patch   : 45  VCO Lead  
-   * > MAIN    : |- |- Patch   : 46  Spirit VCF
-   * > MAIN    : |- |- Patch   : 47  OZ Lead   
-   * > MAIN    : |- |- Patch   : 48  Get Lucky 
-   * > MAIN    : |- |- Patch   : 49  Gamma Band
-   * > MAIN    : |- |- Patch   : 50  Metal Reed
-   * > MAIN    : |- |- Patch   : 51  Modomatic 
-   * > MAIN    : |- |- Patch   : 52  Gently    
-   * > MAIN    : |- |- Patch   : 53  Mystichoir
-   * > MAIN    : |- |- Patch   : 54  St.Michael
-   * > MAIN    : |- |- Patch   : 55  Sharpy    
-   * > MAIN    : |- |- Patch   : 56  FreeThem  
-   * > MAIN    : |- |- Patch   : 57  Hollow Pad
-   * > MAIN    : |- |- Patch   : 58  SatinGlass
-   * > MAIN    : |- |- Patch   : 59  SatinGlass
-   * > MAIN    : |- |- Patch   : 60  Saeg es   
-   * > MAIN    : |- |- Patch   : 61  Revelation
-   * > MAIN    : |- |- Patch   : 62  WdBass Duo
-   * > MAIN    : |- |- Patch   : 63  DR Electry
-   * > MAIN    : |- '- Patch   : 64  DR Dance  
-   * > MAIN    : '- Patch Bank : P   Preset
-   * > MAIN    :   |- Patch    : 01  Piano     
-   * > MAIN    :   |- Patch    : 02  Voyager   
-   * > MAIN    :   |- Patch    : 03  Pro55Brass
-   * > MAIN    :   |- Patch    : 04  Elektrodes
-   * > MAIN    :   |- Patch    : 05  Zaratustra
-   * > MAIN    :   |- Patch    : 06  DawnChorus
-   * > MAIN    :   |- Patch    : 07  GX Dream  
-   * > MAIN    :   |- Patch    : 08  GrooveKing
-   * > MAIN    :   |- Patch    : 09  DistGuitar
-   * > MAIN    :   |- Patch    : 10  ZenAirBell
-   * > MAIN    :   |- Patch    : 11  FullString
-   * > MAIN    :   |- Patch    : 12  Jazz Man  
-   * > MAIN    :   |- Patch    : 13  ClassPiano
-   * > MAIN    :   |- Patch    : 14  Rock Piano
-   * > MAIN    :   |- Patch    : 15  DX E.Piano
-   * > MAIN    :   |- Patch    : 16  Hard EP   
-   * > MAIN    :   |- Patch    : 17  Cry Clav  
-   * > MAIN    :   |- Patch    : 18  Funky Clav
-   * > MAIN    :   |- Patch    : 19  Deep Organ
-   * > MAIN    :   |- Patch    : 20  Warm Organ
-   * > MAIN    :   |- Patch    : 21  Trumpet   
-   * > MAIN    :   |- Patch    : 22  Stab Brass
-   * > MAIN    :   |- Patch    : 23  Big Band  
-   * > MAIN    :   |- Patch    : 24  Orch Brass
-   * > MAIN    :   |- Patch    : 25  SynthBrass
-   * > MAIN    :   |- Patch    : 26  Flute     
-   * > MAIN    :   |- Patch    : 27  Saxophone 
-   * > MAIN    :   |- Patch    : 28  FolkGuitar
-   * > MAIN    :   |- Patch    : 29  12 String 
-   * > MAIN    :   |- Patch    : 30  MuteGuitar
-   * > MAIN    :   |- Patch    : 31  SingleCoil
-   * > MAIN    :   |- Patch    : 32  Pick Bass 
-   * > MAIN    :   |- Patch    : 33  Thumb Bass
-   * > MAIN    :   |- Patch    : 34  SynBadBass
-   * > MAIN    :   |- Patch    : 35  VCO Bass  
-   * > MAIN    :   |- Patch    : 36  Violin    
-   * > MAIN    :   |- Patch    : 37  ChamberStr
-   * > MAIN    :   |- Patch    : 38  VCF String
-   * > MAIN    :   |- Patch    : 39  Nova Quire
-   * > MAIN    :   |- Patch    : 40  Vibraphone
-   * > MAIN    :   |- Patch    : 41  Takerimba 
-   * > MAIN    :   |- Patch    : 42  Glocken   
-   * > MAIN    :   |- Patch    : 43  DigiBell  
-   * > MAIN    :   |- Patch    : 44  Oriental  
-   * > MAIN    :   |- Patch    : 45  VCO Lead  
-   * > MAIN    :   |- Patch    : 46  Spirit VCF
-   * > MAIN    :   |- Patch    : 47  OZ Lead   
-   * > MAIN    :   |- Patch    : 48  Get Lucky 
-   * > MAIN    :   |- Patch    : 49  Gamma Band
-   * > MAIN    :   |- Patch    : 50  Metal Reed
-   * > MAIN    :   |- Patch    : 51  Modomatic 
-   * > MAIN    :   |- Patch    : 52  DataStream
-   * > MAIN    :   |- Patch    : 53  Mystichoir
-   * > MAIN    :   |- Patch    : 54  St.Michael
-   * > MAIN    :   |- Patch    : 55  Scatter   
-   * > MAIN    :   |- Patch    : 56  Triton    
-   * > MAIN    :   |- Patch    : 57  Amazon    
-   * > MAIN    :   |- Patch    : 58  SatinGlass
-   * > MAIN    :   |- Patch    : 59  BrassChime
-   * > MAIN    :   |- Patch    : 60  Piano Mist
-   * > MAIN    :   |- Patch    : 61  Xanadu    
-   * > MAIN    :   |- Patch    : 62  WdBass Duo
-   * > MAIN    :   |- Patch    : 63  Drum Set 1
-   * > MAIN    :   '- Patch    : 64  Drum Set 2
-   * > MAIN    : ------------------------------
-   * > MAIN    : * Patch data available</pre></li>
-   * </ol>
-   * 
-   * <p style="margin-bottom:0em"><b>References:</b></p>
-   * <table style="margin-top:0em; margin-bottom:0em">
-   *   <tr><td>[1]</td><td>
-   *     Yamaha Corp.: TG55 Operating Manual. <a href="https://data.yamaha.com/files/download/other_assets/9/316979/TG55G.pdf">Online</a>, retrieved May 12, 2026</td></tr>
-   * </table>
-   */
-  public static void createSimplePatchBank()
-  {
-    final int     devNum = 0; // <- Your zero-based device number here
-    final String  miName = "KOMPLETE KONTROL EXT - 1"; // <- Name of your MIDI interface here
-    MidiInterface mi     = null;
-
-    // Value maps for parameters 'x' and 'y' in voice bulk header 2
-    final int[]    bankNums  = new int[] {0x00, 0x02};
-    final String[] bankIDs   = new String[] {"I","P"};
-    final int[]    patchNums = SYX.getIntRange(0x00,0x3F);
-    final String[] patchIDs  = new String[0x40];
-    for (int i=0x00; i<=0x3F; i++)
-      patchIDs[i] = String.format("%02d",i+1);
-
-    // Create a patch bank
-    BankTree<BankTree.IBankObject> patchBank
-      = new BankTree<BankTree.IBankObject>("Patch","Patch Bank");
-    patchBank.addBank(bankIDs[0],"Internal");
-    patchBank.addBank(bankIDs[1],"Preset");
-
-    try
-    {
-      mi = new MidiInterface(miName);
-      mi.open();
-
-      // The bulk dump message to be received
-      // - Bulk fetch is synchronized on this object
-      final SyxMessage blkDmp = new SyxMessage();
-
-      mi.addSysExListener(new ISysexMessageListener()
-      {
-
-        @Override
-        public void receiveSysexMsg(SysexMessage sxMsg, long timeStamp)
-        throws InvalidMidiDataException
-        {
-          try
-          {
-            // Try to parse as TG55 bulk message header
-            // - Throws an InvalidMidiDataException if no TG55 bulk dump
-            SyxMessage rcvMsg = new SyxMessage();
-            rcvMsg.addParts(new SyxDataStruct(TG55FormatSpecifiers.F_TG55_BD_HEADER1,"Bulk Header 1"));
-            rcvMsg.setMessage(sxMsg.getMessage(),rcvMsg.getLength()/*Header bytes only!*/);
-            int bc = rcvMsg.getPart(0).getMidiValue('b');
-
-            // Parse voice bulk dump
-            // - Throws an InvalidMidiDataException if no TG55 voice bulk dump
-            rcvMsg.clear();
-            rcvMsg.addParts(new SyxDataStruct(TG55FormatSpecifiers.F_TG55_BD_HEADER1 ,"Bulk Header 1"));
-
-            SyxDataStruct blkHdr2;
-            SyxParamInfo  pi;
-            blkHdr2 = new SyxDataStruct(TG55FormatSpecifiers.F_TG55_BD_HEADER2 ,"Bulk Header 2");
-            pi = new SyxParamInfo(blkHdr2,'x',"BANK_ID","Bank ID");
-            pi.setValueMap(bankNums,bankIDs);
-            blkHdr2.addParamInfo(pi);
-            pi = new SyxParamInfo(blkHdr2,'y',"PATCH_ID","Patch ID");
-            pi.setValueMap(patchNums,patchIDs);
-            blkHdr2.addParamInfo(pi);
-            rcvMsg.addParts(blkHdr2);
-
-            rcvMsg.addParts(new SyxDataStruct(TG55FormatSpecifiers.F_TG55_BDVC_HEADER,"Voice Header" ));
-            bc -= (rcvMsg.getPart(1).getLength() + rcvMsg.getPart(2).getLength());
-            rcvMsg.addParts(new SyxDataStruct("**H ".repeat(bc) ,"(Other Data)"));
-            rcvMsg.addParts(new SyxChecksum(SyxChecksum.ROLAND,1,-1));
-            rcvMsg.setMessage(sxMsg.getMessage(),rcvMsg.getLength());
-
-            // Check voice bulk dump
-            int dn = rcvMsg.getPart(0).getMidiValue('#');
-            if (dn!=devNum)
-              throw SYX.InvMdataExc("Wrong devive no. %d; must be %d",dn,devNum);
-            String bid = rcvMsg.getPart(1).readString("st");
-            if (!"VC".equals(bid))
-              throw SYX.InvMdataExc("Bad bulk ID '%s'; must be 'VC'",bid);
-            rcvMsg.validateChecksum();
-
-            // Notify main thread
-            synchronized (blkDmp)
-            {
-              blkDmp.copy(rcvMsg);
-              blkDmp.notifyAll();
-            }
-          }
-          catch (InvalidMidiDataException e)
-          {
-            rcvrLog.errlog("Not a TG55 voice bulk (%s)",e.getMessage());
-            throw e;
-          }
-        }
-
-        @Override
-        public int getDevNum()
-        {
-          return devNum;
-        }
-
-      });
-
-      mainLog.log(0,2,"Fetching patch names");
-      for (int bankNum : bankNums)
-        for (int patchNum : patchNums)
-        {
-          // Create bulk request message
-          SyxDataStruct prt = new SyxDataStruct(TG55FormatSpecifiers.F_TG55_BULK_REQUEST);
-          prt.setMidiValue('#',devNum  ); // Device no.
-          prt.setMidiValue('s','V'     ); // Voice bulk type
-          prt.setMidiValue('t','C'     ); // Voice bulk type
-          prt.setMidiValue('x',bankNum ); // Bank no.
-          prt.setMidiValue('y',patchNum); // Patch no.
-          SyxMessage blkReq = new SyxMessage(prt);
-
-          // Send bulk request and wait for bulk dump
-          blkDmp.clear();
-          synchronized (blkDmp)
-          {
-            mi.send(blkReq);
-            try
-            {
-              blkDmp.wait(2000);
-            }
-            catch (InterruptedException e)
-            { // Ignore
-            }
-          }
-
-          if (!blkDmp.isEmpty())
-          {
-            if (patchNum==0)
-              mainLog.log("\n");
-            mainLog.log(".");
-
-            // Get and print patch name
-            SyxDataStruct blkHdr2 = blkDmp.getPart(1);
-            SyxDataStruct vceHdr  = blkDmp.getPart(2);
-            String bankID    = blkHdr2.getModelValueAsString('x');
-            String patchID   = blkHdr2.getModelValueAsString('y');
-            String patchName = vceHdr.readString("a-j");
-            patchBank.addBankObject(bankID,patchID,patchName);
-          }
-          else
-            mainLog.errlog(".");
-        }
-      mainLog.log(0,-2,"\n");
-      mainLog.log("Done\n\n");
-      mainLog.log(patchBank.prettyPrint());
-    }
-    catch (Exception e)
-    {
-      e.printStackTrace();
-    }
-    finally
-    {
-      if (mi!=null)
-        mi.close();
-    }
-  }
-
-  /**
    * Demonstrates reading and writing SYX files.
    * <hr>
    * <p>
-   *   [{@linkplain HandlingBulkData#createSimplePatchBank() &lt;prev}]
+   *   [{@linkplain #fetchPatchName() &lt;prev}]
    *   | Back to 
-   *     [{@linkplain HandlingBulkData Handling Bulk Data}]
+   *     [{@linkplain AdvancedExamples Advanced Examples}]
    *     [{@linkplain de.btu.kt.syx.tutorials Tutorials}]
    *   | [next&gt;]
    *   
@@ -956,7 +862,7 @@ public class HandlingBulkData
   {
     //HandlingBulkData.fetchPatchName();
     //HandlingBulkData.createSimplePatchBank();
-    HandlingBulkData.syxFiles();
+    AdvancedExamples.syxFiles();
   }
 
 }
