@@ -12,7 +12,7 @@ MIDI system exclusive messages (see \[1\] for a comprehensive introduction) cont
 
 `0xF0 0x43 0x10 0x35 0x7F 0x00 0x00 0x00 0x00 0x03 0xF7`
 
-It is an error messages from a Yamaha SY55 or TG55 synthesizer and means "MIDI Data Error" on SY55/TG55 device #1 (see \[2\], pp. Add-16,17).
+It is an error message from a Yamaha SY55 or TG55 synthesizer and means "MIDI Data Error" on SY55/TG55 device #1 (see \[2\], pp. Add-16,17).
 
 With SYX, we can describe the message data content (excluding the leading status byte `0xF0` and the tailing EOX byte `0xF7`) by a [format specifier](https://www-docs.b-tu.de/fg-kommunikationstechnik/public/matthias.wolff/JavaDoc/SYX/de/btu/kt/syx/midi/SyxDataStruct.html), in our example
 
