@@ -2,11 +2,9 @@
 
 SYX is a lightweight Java package which you can use to develop your own MIDI system exclusive communications application. SYX is  _not_  a SysEx librarian.
 
-<href="https://www-docs.b-tu.de/fg-kommunikationstechnik/public/matthias.wolff/JavaDoc/SYX/de/btu/kt/syx/package-summary.html" target="_blank">JavaDoc</a>
--
-<href="https://www-docs.b-tu.de/fg-kommunikationstechnik/public/matthias.wolff/JavaDoc/SYX/de/btu/kt/syx/tutorials/GettingStarted.html" target="_blank">Getting Started</a>
--
-<href="https://www-docs.b-tu.de/fg-kommunikationstechnik/public/matthias.wolff/JavaDoc/SYX/de/btu/kt/syx/tutorials/package-summary.html" target="_blank">Tutorials</a>
+<a href="https://www-docs.b-tu.de/fg-kommunikationstechnik/public/matthias.wolff/JavaDoc/SYX/de/btu/kt/syx/package-summary.html" target="_blank">JavaDoc</a> -
+<a href="https://www-docs.b-tu.de/fg-kommunikationstechnik/public/matthias.wolff/JavaDoc/SYX/de/btu/kt/syx/tutorials/GettingStarted.html" target="_blank">Getting Started</a> -
+<a href="https://www-docs.b-tu.de/fg-kommunikationstechnik/public/matthias.wolff/JavaDoc/SYX/de/btu/kt/syx/tutorials/package-summary.html" target="_blank">Tutorials</a>
 
 ## The Idea
 
