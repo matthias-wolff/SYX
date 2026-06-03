@@ -7,8 +7,9 @@ import de.btu.kt.syx.midi.SyxDataStruct;
 import de.btu.kt.syx.midi.SyxMessage;
 
 /**
- * Support of proprietary SysEx message format specification files and strings
- * (auxiliary).
+ * <b>&ndash; DRAFT &ndash;</b>
+ * Auxiliary support of (proprietary) SysEx message format specification files
+ * and strings.
  * 
  * <h3>Examples for Message Format Specifications</h3>
  *
@@ -58,14 +59,18 @@ import de.btu.kt.syx.midi.SyxMessage;
  *      }
  *  }</pre>
  *
- * <h3>Specification Format (Draft)</h3>
+ * <h3>Format Specification Draft</h3>
  * <p><b>General</b>
  *   <ul>
- *     <li>Text files</li>
- *     <li>Line comments: Rest of line after '<code>#</code>' (no comment if in
- *       string)</li>
- *     <li>Spaces and <em>single</em> line breaks allowed except specified
- *       otherwise</li>
+ *     <li>SysEx message format specifications are plain text.</li>
+ *     <li>Line comments are supported: Rest of line after '<code>#</code>'
+ *       (except in strings "...") is ignored.</li>
+ *     <li>Additional spaces and tabs are not significant unless specified
+ *       otherwise.</li>
+ *     <li><em>Single</em> line breaks are not significant.</li>
+ *     <li>Multiple successive line breaks <em>are</em> significant (they
+ *       separate message parts).</li>
+ *     <li>Line breaks are <em>not</em> allowed in strings ("...").</li>
  *   </ul>
  * </p>
  * <p><b>File Format</b>
@@ -76,8 +81,7 @@ import de.btu.kt.syx.midi.SyxMessage;
  *       checksum or include part)
  *       <pre>  &lt;format spec&gt;                             - Data part
  *  &lt;format spec&gt; {&lt;param info&gt; ...}          - Data part with parameter info 
- *  CS [&lt;first part&gt;..&lt;last part&gt;] &lt;algoritm&gt; - Checksum part (optinal)
- *  ${&lt;filename&gt;}                             - Include message format file</pre>
+ *  CS [&lt;first part&gt;..&lt;last part&gt;] &lt;algoritm&gt; - Checksum part (optional)</pre>
  *       <ul>
  *         <li><code>&lt;format spec&gt;</code> &ndash; Part format
  *           specifier (mandatory, see {@link SyxDataStruct})</li>
@@ -122,7 +126,16 @@ import de.btu.kt.syx.midi.SyxMessage;
  *   </p>
  * </p>
  * 
- * <h3>Note:</h3>
+ * <p><b>Special Tags</b>
+ *   <ul>
+ *     <li><code>${&lt;filename&gt;}</code> &ndash;
+ *       Inserts the contents of a format specification file at this position.
+ *       Comments and heading/tailing blank lines will be removed from the input
+ *       file before inserting.</li>
+ *   </ul>
+ * </p>
+ * 
+ * <h3>Note</h3>
  * <p>
  *   I deliberately decided against a standard format&mdash;like .properties or
  *   JSON&mdash;in order to make the message format specifications as lean as
@@ -143,32 +156,87 @@ public class SyxMessageFormat
   {
   }
 
+  // -- API -------------------------------------------------------------------
+  
+  /**
+   * Reads a SysEx message format specification from a file and returns a
+   * respective {@link SyxMessage}.
+   * 
+   * @param file
+   *          The file
+   * @return The SysEx message
+   */
   public static final SyxMessage readFile(File file)
   { // TODO: Method stub
     return null;
   }
 
+  /**
+   * Reads a SysEx message format specification from a file and returns a
+   * respective {@link SyxMessage}.
+   * 
+   * @param filename
+   *          The file name
+   * @return The SysEx message
+   */
   public static final SyxMessage readFile(String filename)
   { // TODO: Method stub
     return null;
   }
 
+  /**
+   * Reads a SysEx message format specification from a string and returns a
+   * respective {@link SyxMessage}.
+   * 
+   * @param format
+   *          The format string
+   * @return The SysEx message
+   */
   public static final SyxMessage readString(String format)
   { // TODO: Method stub
     return null;
   }
 
+  /**
+   * Writes the SysEx message format specification of a {@link SyxMessage} to
+   * a file.
+   * 
+   * @param syxMsg
+   *          The message
+   * @param file
+   *          The file
+   */
   public static final void writeFile(SyxMessage syxMsg, File file)
   { // TODO: Method stub
   }
 
+  /**
+   * Writes the SysEx message format specification of a {@link SyxMessage} to
+   * a file.
+   * 
+   * @param syxMsg
+   *          The message
+   * @param filename
+   *          The file name
+   */
   public static final void writeFile(SyxMessage syxMsg, String filename)
   { // TODO: Method stub
   }
 
-  public static final void writeString(SyxMessage syxMsg, String format)
+  /**
+   * Writes the SysEx message format specification of a {@link SyxMessage} to
+   * a string.
+   * 
+   * @param syxMsg
+   *          The message
+   * @return The string
+   */
+  public static final String writeString(SyxMessage syxMsg)
   { // TODO: Method stub
+    return null;
   }
+
+  // -- Workers ---------------------------------------------------------------
 
 }
 
